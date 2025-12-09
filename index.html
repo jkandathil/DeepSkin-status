@@ -309,86 +309,47 @@
                 if (batText) {
                     batText.style.opacity = '1';
                     batText.innerText = "Err";
+                    const yyyy = now.getFullYear();
+                    const mm = String(now.getMonth() + 1).padStart(2, '0');
+                    const dd = String(now.getDate()).padStart(2, '0');
+                    const hh = String(now.getHours()).padStart(2, '0');
+                    const min = String(now.getMinutes()).padStart(2, '0');
+                    const ss = String(now.getSeconds()).padStart(2, '0');
+                    const localTime = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+
+                    const payload = {
+                        user: document.getElementById('user').value,
+                        device: document.getElementById('device').value,
+                        event: document.getElementById('event').value,
+                        context: document.getElementById('context').value,
+                        timestamp: localTime
+                    };
+
+                    btn.disabled = true;
+                    btn.innerText = "Sending...";
+                    status.innerText = "";
+
+                    fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    }).then(() => {
+                        status.style.color = "#34c759";
+                        status.innerText = "Event Sent!";
+                        document.getElementById('context').value = "";
+                        setTimeout(() => status.innerText = "", 3000);
+                    }).catch(err => {
+                        status.style.color = "#ff3b30";
+                        status.innerText = "Error!";
+                    }).finally(() => {
+                        btn.disabled = false;
+                        btn.innerText = "Mark Event";
+                    });
                 }
-            };
-            document.body.appendChild(script);
-        }
 
-        // CALLBACK
-        window.handleBatteryResponse = function (data) {
-            const batText = document.querySelector('.battery-text');
-            const batFill = document.querySelector('.battery-fill');
-            const lastEl = document.getElementById('last-seen');
-
-            if (data && data.battery !== undefined) {
-                if (batText) batText.innerText = data.battery + "%";
-
-                if (batFill) {
-                    batFill.style.width = data.battery + "%";
-                    let color = "#34c759"; // Green
-                    if (data.battery <= 20) color = "#ff3b30"; // Red
-                    else if (data.battery <= 50) color = "#ffcc00"; // Yellow
-                    batFill.style.backgroundColor = color;
-                }
-
-                if (data.timestamp && lastEl) {
-                    const date = new Date(data.timestamp);
-                    lastEl.innerText = "Last seen: " + date.toLocaleTimeString();
-                }
-            } else {
-                if (batText) batText.innerText = "--%";
-                if (batFill) batFill.style.width = "0%";
-                if (lastEl) lastEl.innerText = "Not found";
-            }
-            if (batText) batText.style.opacity = '1';
-        };
-
-        function submitData() {
-            const btn = document.querySelector('.primary-btn');
-            const status = document.getElementById('status-msg');
-
-            const now = new Date();
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const dd = String(now.getDate()).padStart(2, '0');
-            const hh = String(now.getHours()).padStart(2, '0');
-            const min = String(now.getMinutes()).padStart(2, '0');
-            const ss = String(now.getSeconds()).padStart(2, '0');
-            const localTime = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
-
-            const payload = {
-                user: document.getElementById('user').value,
-                device: document.getElementById('device').value,
-                event: document.getElementById('event').value,
-                context: document.getElementById('context').value,
-                timestamp: localTime
-            };
-
-            btn.disabled = true;
-            btn.innerText = "Sending...";
-            status.innerText = "";
-
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                status.style.color = "#34c759";
-                status.innerText = "Event Sent!";
-                document.getElementById('context').value = "";
-                setTimeout(() => status.innerText = "", 3000);
-            }).catch(err => {
-                status.style.color = "#ff3b30";
-                status.innerText = "Error!";
-            }).finally(() => {
-                btn.disabled = false;
-                btn.innerText = "Mark Event";
-            });
-        }
-
-        updateDeviceLabel();
-        setInterval(fetchBattery, 30000);
+                updateDeviceLabel();
+                setInterval(fetchBattery, 30000);
     </script>
 
 </body>
