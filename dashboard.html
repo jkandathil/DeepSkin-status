@@ -32,38 +32,39 @@
             max-width: 480px;
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            /* Ensure vertical stacking */
+            gap: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
         }
 
         .header h1 {
             font-size: 26px;
             margin: 0;
             font-weight: 800;
-            text-align: center;
             color: white;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .header p {
-            color: rgba(255, 255, 255, 0.9);
-            margin: 5px 0 0;
+            color: rgba(255, 255, 255, 0.95);
+            margin: 4px 0 0;
             font-size: 14px;
-            text-align: center;
         }
 
-        /* CARD STYLES (Floating Material) */
+        /* CARD STYLES */
         .card {
             background: var(--card-bg);
             border-radius: 24px;
-            padding: 28px;
+            padding: 24px;
             box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
-            /* Floating Shadow */
             border: 1px solid rgba(255, 255, 255, 0.8);
-            position: relative;
-            overflow: hidden;
         }
 
-        /* BATTERY ICON */
+        /* BATTERY CARD SPECIFIC */
         .battery-card {
             display: flex;
             justify-content: space-between;
@@ -115,7 +116,6 @@
         .battery-fill {
             height: 100%;
             width: 0%;
-            /* Dynamic */
             background-color: var(--text-gray);
             border-radius: 3px;
             transition: width 0.5s ease, background-color 0.5s ease;
@@ -164,7 +164,6 @@
             background: #fdfdfd;
             box-sizing: border-box;
             font-family: inherit;
-            transition: border-color 0.2s;
         }
 
         select:focus,
@@ -186,8 +185,7 @@
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 10px 20px rgba(0, 222, 147, 0.3);
-            /* Colored Shadow */
-            transition: transform 0.1s;
+            margin-top: 10px;
         }
 
         .primary-btn:active {
@@ -208,135 +206,194 @@
         }
     </style>
 </head>
-</div>
 
-<div class="battery-display">
-    <div class="battery-icon">
-        <div class="battery-fill"></div>
+<body>
+
+    <div class="dashboard">
+        <!-- HEADER -->
+        <div class="header">
+            <!-- SVG LOGO -->
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"
+                style="margin-bottom: 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            <h1>DeepSkin Manager</h1>
+            <p>Control & Monitor Device</p>
+        </div>
+
+        <!-- BATTERY CARD -->
+        <div class="card battery-card">
+            <div class="battery-info">
+                <h3 id="device-label">Select Device</h3>
+                <p id="last-seen">Last seen: ...</p>
+            </div>
+
+            <div class="battery-display">
+                <div class="battery-icon">
+                    <div class="battery-fill"></div>
+                </div>
+                <div class="battery-text">--%</div>
+                <button class="refresh-btn" onclick="fetchBattery()">↻</button>
+            </div>
+        </div>
+
+        <!-- CONTROL FORM -->
+        <div class="card">
+            <div class="form-group">
+                <label>Device</label>
+                <select id="device" onchange="updateDeviceLabel()">
+                    <option value="Device_Watchc01">Device_Watchc01</option>
+                    <option value="DeepSkin1">DeepSkin1</option>
+                    <option value="DeepSkin2">DeepSkin2</option>
+                    <option value="DeepSkin3">DeepSkin3</option>
+                    <option value="DeepSkin4">DeepSkin4</option>
+                    <option value="DeepSkin5">DeepSkin5</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>User</label>
+                <select id="user">
+                    <option value="User 1">User 1</option>
+                    <option value="User 2">User 2</option>
+                    <option value="User 3">User 3</option>
+                    <option value="User 4">User 4</option>
+                    <option value="User 5">User 5</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Event Type</label>
+                <select id="event">
+                    <option value="Event 1">Event 1</option>
+                    <option value="Event 2">Event 2</option>
+                    <option value="Event 3">Event 3</option>
+                    <option value="Event 4">Event 4</option>
+                    <option value="Event 5">Event 5</option>
+                    <option value="Event 6">Event 6</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Context Note</label>
+                <textarea id="context" rows="3" placeholder="Describe the activity..."></textarea>
+            </div>
+
+            <button class="primary-btn" onclick="submitData()">SUBMIT</button>
+            <div id="status-msg"></div>
+        </div>
     </div>
-    <div class="battery-text">--%</div>
-    <button class="refresh-btn" onclick="fetchBattery()">↻</button>
-</div>
-</div>
 
-<!-- CONTROL FORM -->
-<div class="card">
-    <div class="form-group">
-        <label>Device</label>
-        <select id="device" onchange="updateDeviceLabel()">
-            <option value="Device_Watchc01">Device_Watchc01</option>
-            <option value="DeepSkin1">DeepSkin1</option>
-            <option value="DeepSkin2">DeepSkin2</option>
-            <option value="DeepSkin3">DeepSkin3</option>
-            <option value="DeepSkin4">DeepSkin4</option>
-            <option value="DeepSkin5">DeepSkin5</option>
-        </select>
-    </div>
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxs8o2ONK8WsV4lxqd39VjOM88-wRPhfB5zPzuAJ69wJhtjCfBIoIiuZAvv66DAW8rUQQ/exec";
 
-    <div class="form-group">
-        <label>User</label>
-        <select id="user">
-            <option value="User 1">User 1</option>
-            <option value="User 2">User 2</option>
-            <option value="User 3">User 3</option>
-            <option value="User 4">User 4</option>
-            <option value="User 5">User 5</option>
-        </select>
-    </div>
+        function updateDeviceLabel() {
+            const dev = document.getElementById('device').value;
+            const label = document.getElementById('device-label');
+            if (label) label.innerText = dev;
+            fetchBattery();
+        }
 
-    <div class="form-group">
-        <label>Event Type</label>
-        <select id="event">
-            <option value="Event 1">Event 1</option>
-            <option value="Event 2">Event 2</option>
-            <option value="Event 3">Event 3</option>
-            <option value="Event 4">Event 4</option>
-            <option value="Event 5">Event 5</option>
-            <option value="Event 6">Event 6</option>
-        </select>
-    </div>
+        // --- JSONP BATTERY FETCH ---
+        function fetchBattery() {
+            const dev = document.getElementById('device').value;
+            const batText = document.querySelector('.battery-text');
 
-    <div class="form-group">
-        <label>Context Note</label>
-        <textarea id="context" rows="3" placeholder="Describe the activity..."></textarea>
-    </div>
+            if (batText) batText.style.opacity = '0.5';
 
-    <button class="primary-btn" onclick="submitData()">SUBMIT</button>
-    <div id="status-msg"></div>
-</div>
-</div>
+            const oldScript = document.getElementById('jsonp-script');
+            if (oldScript) oldScript.remove();
 
-<script>
-    // SCRIPT CONFIG
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxs8o2ONK8WsV4lxqd39VjOM88-wRPhfB5zPzuAJ69wJhtjCfBIoIiuZAvv66DAW8rUQQ/exec";
+            const script = document.createElement('script');
+            script.id = 'jsonp-script';
+            script.src = `${SCRIPT_URL}?action=getBattery&device=${dev}&callback=handleBatteryResponse`;
+            script.onerror = () => {
+                console.log("JSONP Err");
+                if (batText) {
+                    batText.style.opacity = '1';
+                    batText.innerText = "Err";
+                }
+            };
+            document.body.appendChild(script);
+        }
 
-    function updateDeviceLabel() {
-        const dev = document.getElementById('device').value;
-        const label = document.getElementById('device-label');
-        if (label) label.innerText = dev;
-        fetchBattery();
-    }
+        window.handleBatteryResponse = function (data) {
+            const batText = document.querySelector('.battery-text');
+            const batFill = document.querySelector('.battery-fill');
+            const lastEl = document.getElementById('last-seen');
 
-    // --- JSONP BATTERY FETCH ---
-    function fetchBattery() {
-        const dev = document.getElementById('device').value;
-        const batText = document.querySelector('.battery-text');
+            if (data && data.battery !== undefined) {
+                if (batText) batText.innerText = data.battery + "%";
 
-        if (batText) batText.style.opacity = '0.5';
+                if (batFill) {
+                    batFill.style.width = data.battery + "%";
+                    // COLOR LOGIC: <=20 Red, <=40 Yellow, >40 Green
+                    let color = "#34c759";
+                    if (data.battery <= 20) color = "#ff3b30";
+                    else if (data.battery <= 40) color = "#ffcc00";
+                    batFill.style.backgroundColor = color;
+                }
 
-        const oldScript = document.getElementById('jsonp-script');
-        if (oldScript) oldScript.remove();
-
-        const script = document.createElement('script');
-        script.id = 'jsonp-script';
-        script.src = `${SCRIPT_URL}?action=getBattery&device=${dev}&callback=handleBatteryResponse`;
-        script.onerror = () => {
-            console.log("JSONP Err");
-            if (batText) {
-                batText.style.opacity = '1';
-                batText.innerText = "Err";
-                const yyyy = now.getFullYear();
-                const mm = String(now.getMonth() + 1).padStart(2, '0');
-                const dd = String(now.getDate()).padStart(2, '0');
-                const hh = String(now.getHours()).padStart(2, '0');
-                const min = String(now.getMinutes()).padStart(2, '0');
-                const ss = String(now.getSeconds()).padStart(2, '0');
-                const localTime = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
-
-                const payload = {
-                    user: document.getElementById('user').value,
-                    device: document.getElementById('device').value,
-                    event: document.getElementById('event').value,
-                    context: document.getElementById('context').value,
-                    timestamp: localTime
-                };
-
-                btn.disabled = true;
-                btn.innerText = "Sending...";
-                status.innerText = "";
-
-                fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                }).then(() => {
-                    status.style.color = "#34c759";
-                    status.innerText = "Event Sent!";
-                    document.getElementById('context').value = "";
-                    setTimeout(() => status.innerText = "", 3000);
-                }).catch(err => {
-                    status.style.color = "#ff3b30";
-                    status.innerText = "Error!";
-                }).finally(() => {
-                    btn.disabled = false;
-                    btn.innerText = "Mark Event";
-                });
+                if (data.timestamp && lastEl) {
+                    const date = new Date(data.timestamp);
+                    lastEl.innerText = "Last seen: " + date.toLocaleTimeString();
+                }
+            } else {
+                if (batText) batText.innerText = "--%";
+                if (batFill) batFill.style.width = "0%";
+                if (lastEl) lastEl.innerText = "Not found";
             }
+            if (batText) batText.style.opacity = '1';
+        };
 
-            updateDeviceLabel();
-            setInterval(fetchBattery, 30000);
-</script>
+        function submitData() {
+            const btn = document.querySelector('.primary-btn');
+            const status = document.getElementById('status-msg');
+
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const hh = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            const ss = String(now.getSeconds()).padStart(2, '0');
+            const localTime = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+
+            const payload = {
+                user: document.getElementById('user').value,
+                device: document.getElementById('device').value,
+                event: document.getElementById('event').value,
+                context: document.getElementById('context').value,
+                timestamp: localTime
+            };
+
+            btn.disabled = true;
+            btn.innerText = "Sending...";
+            status.innerText = "";
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                status.style.color = "#34c759";
+                status.innerText = "Event Sent!";
+                document.getElementById('context').value = "";
+                setTimeout(() => status.innerText = "", 3000);
+            }).catch(err => {
+                status.style.color = "#ff3b30";
+                status.innerText = "Error!";
+            }).finally(() => {
+                btn.disabled = false;
+                btn.innerText = "SUBMIT";
+            });
+        }
+
+        updateDeviceLabel();
+        setInterval(fetchBattery, 30000);
+    </script>
 
 </body>
 
